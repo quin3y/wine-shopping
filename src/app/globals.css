@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --wine-red: #722F37;
+  --wine-red-light: #8B3A42;
+  --wine-gold: #C5A572;
+  --wine-cream: #F5F0EB;
+  --wine-dark: #1A1A2E;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Smooth transitions for filter panel */
+.filter-panel {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
