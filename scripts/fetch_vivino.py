@@ -253,11 +253,8 @@ def extract_vivino_data(match):
     if image_url and not image_url.startswith("http"):
         image_url = "https:" + image_url
 
-    slug = wine.get("seo_name", "")
-    winery_slug = wine.get("winery", {}).get("seo_name", "")
-    vivino_url = ""
-    if winery_slug and slug:
-        vivino_url = f"https://www.vivino.com/{winery_slug}/{slug}"
+    wine_id = wine.get("id")
+    vivino_url = f"https://www.vivino.com/w/{wine_id}" if wine_id else None
 
     return {
         "rating": stats.get("ratings_average"),
@@ -265,7 +262,7 @@ def extract_vivino_data(match):
         "taste": taste_dict,
         "flavors": flavors if flavors else None,
         "imageUrl": image_url or None,
-        "vivinoUrl": vivino_url or None,
+        "vivinoUrl": vivino_url,
         "vivinoWineName": wine.get("name", ""),
     }
 

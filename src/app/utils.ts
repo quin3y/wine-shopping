@@ -58,7 +58,7 @@ export function formatPrice(price: number | null): string {
 /** Get price range from wines */
 export function getPriceRange(wines: Wine[]): [number, number] {
   const prices = wines
-    .map((w) => w.retailPrice)
+    .map((w) => w.tradePrice)
     .filter((p): p is number => p !== null);
   return [Math.min(...prices), Math.max(...prices)];
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import winesData from "../../data/wines.json";
 import { Wine, SortField, SortDirection, Filters } from "./types";
 import {
@@ -34,6 +34,23 @@ export default function Home() {
   const [sortField, setSortField] = useState<SortField>("retailPrice");
   const [sortDir, setSortDir] = useState<SortDirection>("asc");
   const [showFilters, setShowFilters] = useState(true);
+  const asideRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const aside = asideRef.current;
+    if (!aside) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      aside.classList.add("is-scrolling");
+      clearTimeout(timer);
+      timer = setTimeout(() => aside.classList.remove("is-scrolling"), 800);
+    };
+    aside.addEventListener("scroll", onScroll, true);
+    return () => {
+      aside.removeEventListener("scroll", onScroll, true);
+      clearTimeout(timer);
+    };
+  }, []);
 
   const updateFilter = useCallback(
     <K extends keyof Filters>(key: K, value: Filters[K]) => {
@@ -97,9 +114,9 @@ export default function Home() {
     ) {
       result = result.filter(
         (w) =>
-          w.retailPrice !== null &&
-          w.retailPrice >= filters.priceRange[0] &&
-          w.retailPrice <= filters.priceRange[1]
+          w.tradePrice !== null &&
+          w.tradePrice >= filters.priceRange[0] &&
+          w.tradePrice <= filters.priceRange[1]
       );
     }
 
@@ -156,88 +173,54 @@ export default function Home() {
     (filters.ratingRange[0] > 0 || filters.ratingRange[1] < 5 ? 1 : 0);
 
   return (
-    <div className="min-h-screen">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-[#722F37] text-white shadow-lg">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-4">
+      <header className="shrink-0 bg-[#722F37] text-white shadow-lg">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                🍷 精选酒单
-              </h1>
-              <p className="text-sm text-white/70 mt-0.5">
-                {filtered.length} / {wines.length} 款葡萄酒
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="搜索酒名、酒庄..."
-                  value={filters.search}
-                  onChange={(e) => updateFilter("search", e.target.value)}
-                  className="w-48 sm:w-72 pl-9 pr-3 py-2 rounded-lg bg-white/15 border border-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus:bg-white/20 focus:border-white/40 transition-colors"
-                />
-                <svg
-                  className="absolute left-2.5 top-2.5 w-4 h-4 text-white/50"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              {/* Filter toggle */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 border border-white/20 text-sm hover:bg-white/25 transition-colors"
+            <h1 className="text-lg font-bold tracking-tight">
+              🍷 接着奏乐接着舞 <span className="text-sm font-normal text-white/60 ml-2">{filtered.length}/{wines.length}</span>
+            </h1>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="搜索酒名、酒庄..."
+                value={filters.search}
+                onChange={(e) => updateFilter("search", e.target.value)}
+                className="w-48 sm:w-72 pl-9 pr-3 py-1.5 rounded-lg bg-white/15 border border-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus:bg-white/20 focus:border-white/40 transition-colors"
+              />
+              <svg
+                className="absolute left-2.5 top-2 w-4 h-4 text-white/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
-                </svg>
-                筛选
-                {activeFilterCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/30 text-xs font-medium">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-[1800px] mx-auto flex">
+      <div className="max-w-[1800px] mx-auto flex flex-1 overflow-hidden">
         {/* Filter sidebar */}
         {showFilters && (
-          <aside className="w-64 shrink-0 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto p-4 bg-white border-r border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-700">筛选条件</h2>
-              {activeFilterCount > 0 && (
+          <aside ref={asideRef} className="w-64 shrink-0 overflow-y-auto p-4 bg-white border-r border-gray-200">
+            {activeFilterCount > 0 && (
+              <div className="mb-4">
                 <button
                   onClick={resetFilters}
                   className="text-xs text-[#722F37] hover:underline"
                 >
-                  清除全部
+                  清除全部筛选
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Sort */}
             <FilterSection title="排序">
@@ -266,7 +249,7 @@ export default function Home() {
 
             {/* Country */}
             <FilterSection title="国家 Country">
-              <div className="space-y-1 max-h-48 overflow-y-auto">
+              <div className="space-y-1">
                 {countries.map((c) => (
                   <CheckboxItem
                     key={c}
@@ -306,7 +289,7 @@ export default function Home() {
 
             {/* Variety */}
             <FilterSection title="葡萄品种 Variety">
-              <div className="space-y-1 max-h-64 overflow-y-auto">
+              <div className="space-y-1">
                 {topVarieties.map((v) => (
                   <CheckboxItem
                     key={v}
@@ -322,43 +305,55 @@ export default function Home() {
             </FilterSection>
 
             {/* Price range */}
-            <FilterSection title={`零售价 ¥${filters.priceRange[0]}–¥${filters.priceRange[1]}`}>
+            <FilterSection title={`经销价 ¥${filters.priceRange[0]}–¥${filters.priceRange[1]}`}>
               <div className="px-1 space-y-2">
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  step={10}
-                  value={filters.priceRange[0]}
-                  onChange={(e) =>
-                    updateFilter("priceRange", [
-                      Number(e.target.value),
-                      filters.priceRange[1],
-                    ])
-                  }
-                  className="w-full accent-[#722F37]"
-                />
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  step={10}
-                  value={filters.priceRange[1]}
-                  onChange={(e) =>
-                    updateFilter("priceRange", [
-                      filters.priceRange[0],
-                      Number(e.target.value),
-                    ])
-                  }
-                  className="w-full accent-[#722F37]"
-                />
+                <div>
+                  <div className="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                    <span>最低价</span>
+                    <span>¥{filters.priceRange[0]}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    step={10}
+                    value={filters.priceRange[0]}
+                    onChange={(e) =>
+                      updateFilter("priceRange", [
+                        Number(e.target.value),
+                        filters.priceRange[1],
+                      ])
+                    }
+                    className="w-full accent-[#722F37]"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                    <span>最高价</span>
+                    <span>¥{filters.priceRange[1]}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    step={10}
+                    value={filters.priceRange[1]}
+                    onChange={(e) =>
+                      updateFilter("priceRange", [
+                        filters.priceRange[0],
+                        Number(e.target.value),
+                      ])
+                    }
+                    className="w-full accent-[#722F37]"
+                  />
+                </div>
               </div>
             </FilterSection>
           </aside>
         )}
 
         {/* Main content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {filtered.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
               <p className="text-lg">没有找到匹配的酒款</p>
@@ -442,7 +437,7 @@ function WineCard({ wine }: { wine: Wine }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
       {/* Wine image or placeholder */}
-      <div className={`relative ${wine.vivino?.imageUrl ? "h-48" : "h-24"} bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden`}>
+      <div className="relative h-48 bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
         {wine.vivino?.imageUrl ? (
           <img
             src={wine.vivino.imageUrl}
@@ -450,7 +445,10 @@ function WineCard({ wine }: { wine: Wine }) {
             className="h-44 object-contain group-hover:scale-105 transition-transform"
           />
         ) : (
-          <div className="text-4xl opacity-15">🍷</div>
+          <div className="flex flex-col items-center gap-1 opacity-30">
+            <div className="text-4xl">🍷</div>
+            <div className="text-xs text-gray-500">暂无图片</div>
+          </div>
         )}
         {/* NEW badge */}
         {wine.isNew && (
@@ -460,7 +458,7 @@ function WineCard({ wine }: { wine: Wine }) {
         )}
         {/* Rating badge */}
         {rating != null && (
-          <div className="absolute top-2 right-2 bg-[#722F37] text-white px-2 py-1 rounded-lg">
+          <div className="absolute top-2 right-2 bg-[#722F37] text-white px-2 py-1 rounded-lg text-center">
             <div className="text-sm font-bold leading-none">{rating.toFixed(1)}</div>
             <div className="text-[10px] opacity-70">Vivino</div>
           </div>
@@ -486,10 +484,10 @@ function WineCard({ wine }: { wine: Wine }) {
 
         {/* Name */}
         <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 mb-0.5">
-          {wine.name.zh}
+          {wine.name.en}
         </h3>
         <p className="text-xs text-gray-400 line-clamp-1 mb-1.5">
-          {wine.name.en}
+          {wine.name.zh}
         </p>
 
         {/* Winery + Region */}
@@ -529,17 +527,17 @@ function WineCard({ wine }: { wine: Wine }) {
         <div className="flex items-end justify-between pt-2 border-t border-gray-100">
           <div>
             <span className="text-lg font-bold text-[#722F37]">
-              {formatPrice(wine.retailPrice)}
+              {formatPrice(wine.tradePrice)}
             </span>
-            {wine.tradePrice && (
+            {wine.retailPrice && (
               <span className="text-xs text-gray-400 ml-1.5">
-                经销 {formatPrice(wine.tradePrice)}
+                零售 {formatPrice(wine.retailPrice)}
               </span>
             )}
           </div>
-          {wine.vivino?.vivinoUrl && (
+          {wine.vivino && (
             <a
-              href={wine.vivino.vivinoUrl}
+              href={`https://www.vivino.com/search/wines?q=${encodeURIComponent(wine.vivino.vivinoWineName || wine.name.en)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-[#722F37]/60 hover:text-[#722F37] transition-colors"

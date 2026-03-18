@@ -10,23 +10,34 @@
   --wine-dark: #1A1A2E;
 }
 
-body {
+html, body {
+  height: 100%;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
+/* Sidebar scrollbar - macOS overlay style */
+aside,
+aside * {
+  scrollbar-width: none;
+}
+aside.is-scrolling,
+aside.is-scrolling * {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+aside::-webkit-scrollbar,
+aside *::-webkit-scrollbar {
   width: 6px;
 }
-::-webkit-scrollbar-track {
+aside::-webkit-scrollbar-thumb,
+aside *::-webkit-scrollbar-thumb {
   background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+aside.is-scrolling::-webkit-scrollbar-thumb,
+aside.is-scrolling *::-webkit-scrollbar-thumb {
+  background: #d1d5db;
 }
 
 /* Smooth transitions for filter panel */
