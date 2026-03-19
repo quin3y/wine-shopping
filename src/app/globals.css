@@ -40,7 +40,20 @@ aside.is-scrolling *::-webkit-scrollbar-thumb {
   background: #d1d5db;
 }
 
-/* Smooth transitions for filter panel */
-.filter-panel {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+/* Mobile drawer slide-in */
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-in 0.25s ease-out;
+}
+
+/* Hide scrollbar but keep scrollable */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
