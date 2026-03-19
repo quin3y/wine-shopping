@@ -30,7 +30,8 @@ OUTPUT_PATH = BASE_DIR / "data" / "wines.json"
 
 VIVINO_EXPLORE_URL = "https://www.vivino.com/api/explore/explore"
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-REQUEST_DELAY = 3.5  # seconds between requests
+REQUEST_DELAY = 5.0  # seconds between requests
+RATE_LIMIT_COOLDOWN = 300  # 5 minutes cooldown when rate limited
 
 # Map our color names to Vivino wine_type_ids
 # 1=Red, 2=White, 3=Sparkling, 4=Rosé, 7=Dessert/Sweet
@@ -136,7 +137,7 @@ def fetch_vivino_page(country_codes, wine_type_id, page=1, per_page=25):
     query_string = urllib.parse.urlencode(params, doseq=True)
     url = f"{VIVINO_EXPLORE_URL}?{query_string}"
 
-    # Retry with backoff on failure
+    # Retry: short wait first, then long cooldown
     for attempt in range(3):
         data = curl_get_json(url)
         if data:
@@ -144,9 +145,13 @@ def fetch_vivino_page(country_codes, wine_type_id, page=1, per_page=25):
             matches = ev.get("matches", [])
             total = ev.get("records_matched", 0)
             return matches, total
-        wait = 15 * (attempt + 1)
-        print(f"    [Rate limited, waiting {wait}s... (attempt {attempt+1}/3)]")
-        time.sleep(wait)
+        if attempt < 2:
+            wait = RATE_LIMIT_COOLDOWN
+            mins = wait // 60
+            print(f"    [Rate limited, cooling down {mins}min... (attempt {attempt+1}/3)]")
+            time.sleep(wait)
+        else:
+            print(f"    [Rate limited, giving up after 3 attempts]")
     return [], 0
 
 
@@ -273,6 +278,7 @@ def save_wines(wines):
 
 
 def main():
+    refetch = "--refetch" in sys.argv
     print(f"Loading wines from {OUTPUT_PATH}")
     with open(OUTPUT_PATH, "r", encoding="utf-8") as f:
         wines = json.load(f)
@@ -280,11 +286,13 @@ def main():
 
     already = sum(1 for w in wines if w.get("vivino") is not None)
     print(f"Already have Vivino data: {already}")
+    if refetch:
+        print("** REFETCH mode: re-matching ALL wines **")
 
     # Group wines by country + color for batch matching
     groups = {}
     for i, w in enumerate(wines):
-        if w.get("vivino") is not None:
+        if not refetch and w.get("vivino") is not None:
             continue
         country = w["country"]["en"]
         color = w["color"]["en"]

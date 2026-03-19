@@ -665,9 +665,9 @@ function WineCard({ wine }: { wine: Wine }) {
               </span>
             )}
           </div>
-          {wine.vivino && (
+          {wine.vivino?.vivinoUrl && (
             <a
-              href={`https://www.vivino.com/search/wines?q=${encodeURIComponent(wine.vivino.vivinoWineName || wine.name.en)}`}
+              href={wine.vivino.vivinoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[10px] sm:text-xs text-[#722F37]/60 hover:text-[#722F37] transition-colors"
